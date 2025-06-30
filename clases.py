@@ -1,5 +1,5 @@
 from abc import abstractmethod , ABC
-from error import LargoExcedidoError
+from error import LargoExcedidoError, SubTipoInvalidoError
 
 class Anuncio(ABC):
     def __init__(self, ancho, alto, url_archivo, url_click, sub_tipo):
@@ -49,12 +49,24 @@ class Anuncio(ABC):
     
     @sub_tipo.setter
     def sub_tipo(self, sub_tipo):
-        self.__sub_tipo = sub_tipo
 
+        if (isinstance(self,Video) and sub_tipo in Video.SUB_TIPOS
+            or isinstance(self,Social) and sub_tipo in Social.SUB_TIPOS
+            or isinstance(self,Display) and sub_tipo in Display.SUB_TIPOS):
+            self.__sub_tipo = sub_tipo
+
+        else:
+            raise SubTipoInvalidoError("error de tipo invalido.")
+        
+
+       
 
     @staticmethod
     def mostrar_formatos():
         return {Video.FORMATO} - {Social.FORMATO} 
+    
+
+    
     @abstractmethod  
     def comprimir_anuncio():
         pass
@@ -64,22 +76,16 @@ class Anuncio(ABC):
 
 
 
-
-
-
-
-
-
 class Campana:
     def __init__(self,nombre,fecha_inicio, fecha_termino):
         self.__nombre = nombre 
         self.__fecha_inicio = fecha_inicio
         self.__fecha_termino = fecha_termino
-        self.__anuncios = [self.componer_anuncios()]
+        self.__anuncios = [self.componer_anuncio()]
 
 
 
-    def componer_anuncios(self):
+    def componer_anuncio(self):
         
         opcion = int(input("que tipo de anuncio quieres  1 -  para video - 2 para display - 3 para social"))
         if opcion == 1:
@@ -89,17 +95,30 @@ class Campana:
             new_anuncio = Display()
         elif opcion == 3:
             new_anuncio = Social()
-        
-        #self.__anuncios.append(new_anuncio)
-
         return new_anuncio
     
+
+    def agregar_anuncios(self):
+        while True:
+            try:
+                opcion = int(input("que tipo de anuncio quieres  1 -  para video - 2 para display - 3 para social"))
+                if opcion == 1:
+                    duracion = int(input("cual es la duracion del video  minimo 5"))
+                    new_anuncio = Video(duracion)
+                elif opcion == 2:
+                    new_anuncio = Display()
+                elif opcion == 3:
+                    new_anuncio = Social()
+                else:
+                    break
+                self.__anuncios.append(new_anuncio)
+            except Exception as e:
+                pass
+
         
 
-
-
-    
-
+        #opcion que el usuario pone la opcion y entramos al bucle (while)
+        #self.__anuncios.append(new_anuncio)
 
     @property
     def nombre(self):
@@ -147,10 +166,11 @@ class Video(Anuncio):
     FORMATO = "Video"
     SUB_TIPOS = ("INSTREAM" , "OUTSTREAM" )
 
-    def __init__(self,duracion):
+    def __init__(self,duracion, subtipo):
         self.ancho = 1 
         self.alto = 1
         self.__duracion = duracion if duracion > 0 else 5
+        self.sub_tipo = subtipo
 
     @property
     def duracion(self):
@@ -178,11 +198,19 @@ class Display(Anuncio):
     SUB_TIPOS = ("TRADICIONAL" , "NATIVE")
 
 
+    def __init__(self, ancho, alto, url_archivo, url_click, sub_tipo):
+        super().__init__(ancho, alto, url_archivo, url_click, sub_tipo)
+        
+
+
     def comprimir_anuncio():
         print("COMPRESIÓN DE VIDEO NO IMPLEMENTADA AÚN")
     
     def redimensionar_anuncio():
         print( "RECORTE DE VIDEO NO IMPLEMENTADO AÚN")
+
+    def __repr__(self):
+        return f"{Display.FORMATO}"
 
 
 
@@ -190,12 +218,18 @@ class Social(Anuncio):
     FORMATO = "SOCIAL"
     SUB_TIPOS = ("FACEBOOK" , "LINKEDIN" )
 
+    def __init__(self, ancho, alto, url_archivo, url_click, sub_tipo):
+        super().__init__(ancho, alto, url_archivo, url_click, sub_tipo)
+        
+
     def comprimir_anuncio():
         print("COMPRESIÓN DE VIDEO NO IMPLEMENTADA AÚN")
     
     def redimensionar_anuncio():
         print( "RECORTE DE VIDEO NO IMPLEMENTADO AÚN")
 
+    def __repr__(self):
+        return f"{Social.FORMATO}"
 
 
 
